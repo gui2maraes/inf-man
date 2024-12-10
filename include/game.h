@@ -15,3 +15,5 @@ int Game_init(Game *game);
 
 void Game_update(Game *game);
 void Game_draw(Game *game);
+
+void Game_collide(Game *game);

@@ -2,8 +2,6 @@
 #include "raylib.h"
 #include <stdio.h>
 
-#define GAME_SCALE 4
-
 int main(void) {
   InitWindow(1200, 600, "INF MAN");
   SetTargetFPS(60);

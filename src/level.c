@@ -13,9 +13,33 @@ int Level_init(Level *level, char *worldfile) {
   return 1;
 }
 Vector2 Level_matrix_to_world(int line, int column) {
-  Vector2 v = {column, LEVEL_HEIGHT - line - 1};
+  float scale = TILE_SIZE;
+  Vector2 v = {(column * scale) + TILE_SIZE / 2.0,
+               (line * scale) + TILE_SIZE / 2.0};
   return v;
 }
+
+int Level_world_to_matrix(Vector2 v, int *line, int *column) {
+  int x = v.x / TILE_SIZE; // Converte posição em coordenada de tile
+  int y = v.y / TILE_SIZE;
+
+  // Verifica se está fora dos limites do nível
+  if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
+    return 0; // Fora dos limites, não é sólido
+  }
+  *line = y;
+  *column = x;
+  return 1;
+}
+
+int Level_is_tile(Level *l, Vector2 v, Tile tile) {
+  int line, column;
+  if (!Level_world_to_matrix(v, &line, &column)) {
+    return 0;
+  }
+  return l->tiles[column][line] == tile;
+}
+void Level_draw(Level *level) { DrawTexture(level->sprite, 0, 0, WHITE); }
 void Level_gen_texture(Level *level) {
   Image dirt = LoadImage("assets/dirt.png");
   Image sky = LoadImage("assets/sky.png");
