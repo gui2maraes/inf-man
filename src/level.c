@@ -2,6 +2,7 @@
 #include "config.h"
 #include "raylib.h"
 #include "worldfile.h"
+#include <math.h>
 #include <stdlib.h>
 
 int Level_init(Level *level, char *worldfile) {
@@ -31,8 +32,17 @@ int Level_world_to_matrix(Vector2 v, int *line, int *column) {
   *column = x;
   return 1;
 }
+Vector2 Level_align_coord_tile_center(Vector2 coords) {
+  int line, column;
+  if (Level_world_to_matrix(coords, &line, &column)) {
+    return Level_matrix_to_world(line, column);
+  }
+  return (Vector2){0};
+  // coords.x = floorf(coords.x / TILE_SIZE) + TILE_SIZE / 2.0;
+  // coords.y = floorf(coords.y / TILE_SIZE) + TILE_SIZE / 2.0;
+}
 
-int Level_is_tile(Level *l, Vector2 v, Tile tile) {
+int Level_coord_is_tile(Level *l, Vector2 v, Tile tile) {
   int line, column;
   if (!Level_world_to_matrix(v, &line, &column)) {
     return 0;

@@ -29,4 +29,6 @@ void Level_gen_texture(Level *level);
 void Level_draw(Level *level);
 
 /// Checks if a world coordinate is a certain tile
-int Level_is_tile(Level *l, Vector2 v, Tile tile);
+int Level_coord_is_tile(Level *l, Vector2 v, Tile tile);
+
+Vector2 Level_align_coord_tile_center(Vector2 coords);

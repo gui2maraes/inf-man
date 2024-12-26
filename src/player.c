@@ -1,7 +1,17 @@
 #include "player.h"
+#include "collision.h"
 #include "config.h"
 #include "level.h"
 #include "raylib.h"
+
+Rectangle Player_hitbox(Player *p, Tile tile) {
+  float side = PLAYER_SIZE;
+  if (tile == TILE_OBSTACLE) {
+    side *= 0.8;
+  }
+  return (Rectangle){
+      .x = p->pos.x, .y = p->pos.y, .width = side, .height = side};
+}
 
 static Vector2 Player_feet(Player *p) {
   Vector2 translated = p->pos;
@@ -26,10 +36,6 @@ void Player_draw(Player *p) {
   }
 }
 
-static int Player_can_jump(Player *p, Level *level) {
-  return Level_is_tile(level, Player_feet(p), TILE_BLOCK);
-}
-
 void Player_update(Player *p, Level *level, float delta) {
   p->velocity.x = 0;
   if (IsKeyDown(KEY_A)) {
@@ -39,7 +45,24 @@ void Player_update(Player *p, Level *level, float delta) {
     p->velocity.x = PLAYER_SPEED * delta;
   }
   p->pos.x += p->velocity.x;
-  if (Player_can_jump(p, level)) {
+  p->pos.y -= p->velocity.y * delta;
+
+  CollisionMap collisions =
+      resolve_collisions(level, Player_hitbox(p, TILE_BLOCK), TILE_BLOCK);
+  Vector2 aligned = Level_align_coord_tile_center(p->pos);
+  if (collisions & COLLISION_LEFT) {
+    p->pos.x = aligned.x - TILE_SIZE / 2.0 + PLAYER_SIZE / 2.0;
+  }
+  if (collisions & COLLISION_RIGHT) {
+    p->pos.x = aligned.x + TILE_SIZE / 2.0 - PLAYER_SIZE / 2.0;
+  }
+  if (collisions & COLLISION_UP) {
+    p->pos.y = aligned.y - TILE_SIZE / 2.0 + PLAYER_SIZE / 2.0;
+    p->velocity.y = 0;
+  }
+
+  if (collisions & COLLISION_DOWN) {
+    p->pos.y = aligned.y + TILE_SIZE / 2.0 - PLAYER_SIZE / 2.0;
     p->velocity.y = 0;
     if (IsKeyPressed(KEY_W)) {
       p->velocity.y = PLAYER_SPEED * 2.5;
@@ -47,5 +70,4 @@ void Player_update(Player *p, Level *level, float delta) {
   } else {
     p->velocity.y -= GRAVITY * delta;
   }
-  p->pos.y -= p->velocity.y * delta;
 }

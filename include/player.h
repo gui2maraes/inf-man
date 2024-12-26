@@ -23,3 +23,4 @@ void Player_draw(Player *p);
 int Player_is_dead(Player *p);
 void Player_damage(Player *p);
 void Player_update(Player *p, Level *level, float delta);
+Rectangle Player_hitbox(Player *p, Tile tile);
