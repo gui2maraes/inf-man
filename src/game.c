@@ -1,5 +1,6 @@
 #include "game.h"
 #include "config.h"
+#include "gui.h"
 #include "level.h"
 #include "raylib.h"
 #include "utils.h"
@@ -24,48 +25,59 @@ int Game_init(Game *game) {
   game->title_sprite = LoadTexture("assets/inf_man.png");
   printf("Spawn point: x: %f, y: %f", game->level.spawn_point.x,
          game->level.spawn_point.y);
+  if (!Leaderboard_init(&game->leaderboard, LEADERBOARD_FILE)) {
+    return 0;
+  }
   return 1;
 }
 
-static int menu_button(char *label, int x, int y) {
-  int text_size = MeasureText(label, MENU_FONT_SIZE);
-  Rectangle rect = {x - text_size / 2.0, y, text_size, MENU_FONT_SIZE};
-  Vector2 mouse_pos = GetMousePosition();
-  Color col = WHITE;
-  int out = 0;
-  if (CheckCollisionPointRec(mouse_pos, rect)) {
-    col = LIGHTGRAY;
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-      out = 1;
-    }
-  }
-  DrawText(label, rect.x, rect.y, MENU_FONT_SIZE, col);
-  return out;
-}
-
+/// Draws the Game title screen
 static void Game_menu_draw(Game *game) {
   int half_width = WINDOW_WIDTH / 2;
   int title_y = WINDOW_HEIGHT / 3 - game->title_sprite.height / 2;
   int next_y = title_y + game->title_sprite.height / 2;
-  int step = MENU_FONT_SIZE + MENU_PADDING;
+  int step = GUI_FONT_SIZE + GUI_PADDING;
 
   BeginDrawing();
   ClearBackground(BLUE);
   DrawTexture(game->title_sprite, half_width - game->title_sprite.width / 2,
               title_y, WHITE);
-  if (menu_button("Start", half_width, next_y + step * 2)) {
+  if (gui_button("Start", half_width, next_y + step * 2)) {
     game->state = GAME_RUNNING;
   }
-  if (menu_button("Leaderboard", half_width, next_y + step * 3)) {
+  if (gui_button("Leaderboard", half_width, next_y + step * 3)) {
     game->state = GAME_LEADERBOARD;
   }
-  if (menu_button("Exit", half_width, next_y + step * 4)) {
+  if (gui_button("Exit", half_width, next_y + step * 4)) {
     game->state = GAME_CLOSE;
   }
 
   EndDrawing();
 }
-static void Game_menu_update(Game *game) {}
+
+static void Game_leaderboard_draw(Game *game) {
+  char entry[PLAYER_NAME_MAX + 5] = {0};
+  int half_width = WINDOW_WIDTH / 2;
+  int next_y = WINDOW_HEIGHT / 8;
+  BeginDrawing();
+  ClearBackground(BLUE);
+  gui_text("LEADERBOARD", half_width, next_y, 1.5, ALIGN_CENTER);
+  next_y += GUI_FONT_SIZE * 3;
+  for (int i = 0; i < LEADERBOARD_NUM; ++i) {
+    PlayerRecord *p = &game->leaderboard.players[i];
+    /// Write information to a string
+    snprintf(entry, PLAYER_NAME_MAX + 5, "%s", p->name);
+    gui_text(entry, half_width, next_y, 1.0, ALIGN_RIGHT);
+    snprintf(entry, PLAYER_NAME_MAX + 5, " - %d", p->score);
+    gui_text(entry, half_width, next_y, 1.0, ALIGN_LEFT);
+    next_y += GUI_FONT_SIZE + GUI_PADDING;
+  }
+  next_y += GUI_FONT_SIZE;
+  if (gui_button("Back", half_width, next_y)) {
+    game->state = GAME_TITLE_SCREEN;
+  }
+  EndDrawing();
+}
 
 /// Game logic function. Runs every frame.
 static void Game_running_update(Game *game) {
@@ -87,18 +99,23 @@ static void Game_running_draw(Game *game) {
   EndDrawing();
 }
 
+/// Draws the game depending on its game state.
 void Game_draw(Game *game) {
   switch (game->state) {
+  case GAME_RUNNING:
+    Game_running_draw(game);
+    break;
   case GAME_TITLE_SCREEN:
     Game_menu_draw(game);
     break;
-  case GAME_RUNNING:
-    Game_running_draw(game);
+  case GAME_LEADERBOARD:
+    Game_leaderboard_draw(game);
     break;
   default:
     error_out("not implemented");
   }
 }
+
 /// Updates the Game structure.
 /// Returns 1 if the game should keep running
 /// and 0 if the game should close.

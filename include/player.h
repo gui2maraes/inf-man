@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config.h"
+#include "leaderboard.h"
 #include "level.h"
 #include "raylib.h"
 
@@ -8,7 +9,7 @@ typedef struct Player {
   Vector2 pos;
   Vector2 velocity;
   int health;
-  int score;
+  PlayerRecord record;
   Texture sprite;
 
 } Player;

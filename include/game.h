@@ -1,5 +1,5 @@
 #pragma once
-#include "config.h"
+#include "leaderboard.h"
 #include "level.h"
 #include "player.h"
 #include "raylib.h"
@@ -13,18 +13,13 @@ typedef enum GameState {
   GAME_CLOSE,
 } GameState;
 
-typedef struct PlayerRecord {
-  char name[10];
-  int score;
-} PlayerRecord;
-
 typedef struct Game {
   GameState state;
   Level level;
   Player player;
   Camera2D camera;
-  PlayerRecord leaderboard[LEADERBOARD_NUM];
   Texture title_sprite;
+  Leaderboard leaderboard;
 } Game;
 
 /// Initializes a Game struct.

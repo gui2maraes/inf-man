@@ -13,6 +13,9 @@
 #define GAME_SCALE ((float)1200 / (LEVEL_HEIGHT * TILE_SIZE * 2))
 #define DEBUG_MODE (1)
 #define LEADERBOARD_NUM 5
-#define MENU_FONT_SIZE 40
+#define PLAYER_NAME_MAX 10
+#define GUI_FONT_SIZE 40
 
-#define MENU_PADDING 10
+#define GUI_PADDING 10
+
+#define LEADERBOARD_FILE "top_scores.bin"
