@@ -1,6 +1,5 @@
 #include "game.h"
 #include "raylib.h"
-#include <stdio.h>
 
 int main(void) {
   InitWindow(1200, 600, "INF MAN");
@@ -12,7 +11,9 @@ int main(void) {
     return 1;
   }
   while (!WindowShouldClose()) {
-    Game_update(&game);
+    if (!Game_update(&game)) {
+      break;
+    }
     Game_draw(&game);
   }
   CloseWindow();

@@ -4,7 +4,6 @@
 #define WINDOW_HEIGHT 600
 #define INITIAL_HEALTH 3
 #define PLAYER_SIZE 24
-#define PLAYER_COLLISION_RECTS_CORNER 2
 #define PLAYER_SPEED (PLAYER_SIZE * 4)
 #define LEVEL_WIDTH 200
 #define LEVEL_HEIGHT 10
@@ -13,3 +12,7 @@
 #define WORLDFILE_PATH "level.world"
 #define GAME_SCALE ((float)1200 / (LEVEL_HEIGHT * TILE_SIZE * 2))
 #define DEBUG_MODE (1)
+#define LEADERBOARD_NUM 5
+#define MENU_FONT_SIZE 40
+
+#define MENU_PADDING 10

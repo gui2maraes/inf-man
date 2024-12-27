@@ -6,6 +6,7 @@
 
 /// Checks for collisions against a tile type. Returns
 /// a bitmap containing the collision directions.
+/// We assume a hitbox can't be bigger than 2 * TILE_SIZE.
 CollisionMap resolve_collisions(Level *level, Rectangle hitbox,
                                 Tile checked_tile) {
   CollisionMap colls = 0;
