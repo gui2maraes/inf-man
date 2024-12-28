@@ -4,6 +4,7 @@
 int main(void) {
   InitWindow(1200, 600, "INF MAN");
   SetTargetFPS(60);
+  SetExitKey(KEY_NULL);
 
   Game game;
 

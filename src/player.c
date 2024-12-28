@@ -12,6 +12,7 @@ Rectangle Player_hitbox(Player *p, Tile tile) {
   return (Rectangle){
       .x = p->pos.x, .y = p->pos.y, .width = side, .height = side};
 }
+int Player_is_dead(Player *p) { return p->health <= 0; }
 
 static Vector2 Player_feet(Player *p) {
   Vector2 translated = p->pos;
@@ -37,6 +38,12 @@ void Player_draw(Player *p) {
 }
 
 void Player_update(Player *p, Level *level, float delta) {
+  if (p->pos.y > LEVEL_HEIGHT * TILE_SIZE + PLAYER_SIZE) {
+    p->health = 0;
+  }
+  if (Player_is_dead(p)) {
+    return;
+  }
   p->velocity.x = 0;
   if (IsKeyDown(KEY_A)) {
     p->velocity.x = -PLAYER_SPEED * delta;
@@ -59,6 +66,9 @@ void Player_update(Player *p, Level *level, float delta) {
   if (collisions & COLLISION_UP) {
     p->pos.y = aligned.y - TILE_SIZE / 2.0 + PLAYER_SIZE / 2.0;
     p->velocity.y = 0;
+  }
+  if (p->pos.x < PLAYER_SIZE / 2.0) {
+    p->pos.x = PLAYER_SIZE / 2.0;
   }
 
   if (collisions & COLLISION_DOWN) {

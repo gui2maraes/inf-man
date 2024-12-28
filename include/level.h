@@ -14,6 +14,7 @@ typedef struct Level {
   Tile tiles[200][10];
   Vector2 spawn_point;
   Texture sprite;
+  Vector2 sprite_offset;
 } Level;
 
 /// Initializes level with worldfile and generates world texture.

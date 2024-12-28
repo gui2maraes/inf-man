@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "config.h"
 #include "raylib.h"
+#include <stdio.h>
 
 void gui_text(char *text, int x, int y, float font_scale, TextAlign align) {
   int text_size = MeasureText(text, GUI_FONT_SIZE * font_scale);
@@ -18,6 +19,12 @@ void gui_text(char *text, int x, int y, float font_scale, TextAlign align) {
   }
 
   DrawText(text, x - offset, y, GUI_FONT_SIZE * font_scale, WHITE);
+}
+
+void gui_number(int number, int x, int y, float font_scale, TextAlign align) {
+  char txt[20] = {0};
+  snprintf(txt, 20, "%d", number);
+  gui_text(txt, x, y, font_scale, align);
 }
 
 int gui_button(char *label, int x, int y) {
