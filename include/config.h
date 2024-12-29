@@ -2,20 +2,45 @@
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 600
-#define INITIAL_HEALTH 3
-#define PLAYER_SIZE 24
-#define PLAYER_SPEED (PLAYER_SIZE * 4)
+#define GAME_SCALE ((float)1200 / (LEVEL_HEIGHT * TILE_SIZE * 2))
+
 #define LEVEL_WIDTH 200
 #define LEVEL_HEIGHT 10
 #define TILE_SIZE 16
-#define GRAVITY (25 * PLAYER_SIZE)
-#define WORLDFILE_PATH "level.world"
-#define GAME_SCALE ((float)1200 / (LEVEL_HEIGHT * TILE_SIZE * 2))
-#define DEBUG_MODE (1)
-#define LEADERBOARD_NUM 5
-#define PLAYER_NAME_MAX 10
-#define GUI_FONT_SIZE 40
 
+#define GRAVITY (30 * PLAYER_SIZE)
+
+#define INITIAL_HEALTH 3
+#define PLAYER_SIZE 24
+#define PLAYER_SPEED (PLAYER_SIZE * 5.5)
+#define PLAYER_NAME_MAX 10
+#define PLAYER_JUMP_FORCE 11
+#define PLAYER_JUMP_DIVIDER 2.0
+#define PLAYER_INVINCIBILITY 1.0
+#define PLAYER_DAMAGE_RECOIL 1
+
+#define MAX_BULLETS 3
+#define BULLET_WIDTH 10
+#define BULLET_HEIGHT 5
+#define BULLET_SPEED (PLAYER_SIZE * 10)
+
+#define MAX_ENEMIES 10
+
+#define JUMP_KEY KEY_X
+#define MOVE_LEFT_KEY KEY_LEFT
+#define MOVE_RIGHT_KEY KEY_RIGHT
+#define SHOOT_KEY KEY_Z
+#define MOVE_LEFT_KEY_STR "<-"
+#define MOVE_RIGHT_KEY_STR "->"
+#define JUMP_KEY_STR "x"
+#define SHOOT_KEY_STR "z"
+
+#define WORLDFILE_PATH "level.world"
+#define LEADERBOARD_FILE "top_scores.bin"
+
+#define LEADERBOARD_NUM 5
+
+#define GUI_FONT_SIZE 40
 #define GUI_PADDING 10
 
-#define LEADERBOARD_FILE "top_scores.bin"
+#define DEBUG_MODE (1)

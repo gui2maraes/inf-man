@@ -2,13 +2,12 @@
 #include "config.h"
 #include "raylib.h"
 #include "worldfile.h"
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-int Level_init(Level *level, char *worldfile) {
+int Level_init(Level *level, Enemy *enemies, char *worldfile) {
   *level = (Level){0};
-  if (!read_worldfile(worldfile, level)) {
+  if (!read_worldfile(worldfile, level, enemies)) {
     return 0;
   }
   Level_gen_texture(level);

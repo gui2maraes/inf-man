@@ -1,12 +1,15 @@
 #include "worldfile.h"
 #include "config.h"
+#include "enemy.h"
 #include "level.h"
 #include "utils.h"
+#include <stdbool.h>
 #include <stdio.h>
 
 #define LINE_WIDTH (LEVEL_WIDTH + 2)
 
-static int proc_line(Level *level, int line_i, char *line, int *spawn_set) {
+static bool proc_line(Level *level, int line_i, char *line, int *spawn_set,
+                      Enemy *enemies, int *next_enemy) {
   int i = 0;
   for (i = 0; line[i] != '\n' && line[i] != '\0'; ++i) {
     char c = line[i];
@@ -23,13 +26,16 @@ static int proc_line(Level *level, int line_i, char *line, int *spawn_set) {
       t = TILE_OBSTACLE;
       break;
     case 'M':
-      error_out("TODO");
+      t = TILE_SPACE;
+      enemies[*next_enemy] =
+          (Enemy){Level_matrix_to_world(line_i, i), {0, 0}, true};
+      ++*next_enemy;
       break;
     case 'P':
       t = TILE_SPACE;
       if (*spawn_set) {
         fprintf(stderr, "error: spawn point set twice in worldfile.");
-        return 0;
+        return false;
       }
       level->spawn_point = Level_matrix_to_world(line_i, i);
       *spawn_set = 1;
@@ -37,7 +43,7 @@ static int proc_line(Level *level, int line_i, char *line, int *spawn_set) {
     default:
       fprintf(stderr, "error: invalid worldfile character in line %d: `%c`",
               line_i, c);
-      return 0;
+      return false;
     }
     level->tiles[i][line_i] = t;
   }
@@ -46,23 +52,24 @@ static int proc_line(Level *level, int line_i, char *line, int *spawn_set) {
       level->tiles[i][line_i] = TILE_SPACE;
     }
   }
-  return 1;
+  return true;
 }
 
 /// Reads a worldfile into level data.
 /// The worldfile should be a character matrix
 /// with width and height compatible with the level
 /// configuration.
-/// Returns 0 on failure and non-zero on success.
-int read_worldfile(char *filepath, Level *level) {
+/// Returns true on success and false on failure.
+bool read_worldfile(char *filepath, Level *level, Enemy *enemies) {
 
   FILE *f = fopen(filepath, "r");
   int spawn_point_set = 0;
   char line[LINE_WIDTH] = {0};
+  int next_enemy = 0;
 
   if (!f) {
     perror("error opening worldfile");
-    return 0;
+    return false;
   }
 
   for (int i = 0; i < LEVEL_HEIGHT; ++i) {
@@ -76,16 +83,16 @@ int read_worldfile(char *filepath, Level *level) {
         // if another error, report it
         perror("error reading worldfile line");
       }
-      return 0;
+      return false;
     }
 
-    if (!proc_line(level, i, line, &spawn_point_set)) {
-      return 0;
+    if (!proc_line(level, i, line, &spawn_point_set, enemies, &next_enemy)) {
+      return false;
     }
   }
   if (!spawn_point_set) {
     fprintf(stderr, "error: spawn point was not set in worldfile.");
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }

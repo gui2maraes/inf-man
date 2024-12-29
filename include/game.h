@@ -1,4 +1,7 @@
 #pragma once
+#include "bullet.h"
+#include "config.h"
+#include "enemy.h"
 #include "leaderboard.h"
 #include "level.h"
 #include "player.h"
@@ -17,6 +20,8 @@ typedef struct Game {
   GameState state;
   Level level;
   Player player;
+  Bullet bullets[MAX_BULLETS];
+  Enemy enemies[MAX_ENEMIES];
   Camera2D camera;
   Texture title_sprite;
   Leaderboard leaderboard;

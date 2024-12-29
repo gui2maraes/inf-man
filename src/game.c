@@ -16,10 +16,10 @@ int Game_init(Game *game) {
   game->camera.zoom = GAME_SCALE;
   game->camera.offset.x = WINDOW_WIDTH / 2.0;
   // game->camera.offset.y = WINDOW_HEIGHT / 2.0;
-  if (!Level_init(&game->level, WORLDFILE_PATH)) {
+  if (!Level_init(&game->level, game->enemies, WORLDFILE_PATH)) {
     return 0;
   }
-  Player_init(&game->player, LoadTexture("assets/man.png"));
+  Player_init(&game->player);
   game->player.pos = game->level.spawn_point;
 
   game->title_sprite = LoadTexture("assets/inf_man.png");
@@ -32,7 +32,7 @@ int Game_init(Game *game) {
 }
 
 static void Game_reset(Game *game) {
-  Player_init(&game->player, game->player.sprite);
+  Player_init(&game->player);
   game->player.pos = game->level.spawn_point;
 }
 
@@ -43,9 +43,13 @@ static void Game_menu_draw(Game *game) {
   int next_y = title_y + game->title_sprite.height / 2;
   int step = GUI_FONT_SIZE + GUI_PADDING;
 
+  char *ctrls = "MOVE:\n" MOVE_LEFT_KEY_STR ", " MOVE_RIGHT_KEY_STR
+                "\nJUMP: " JUMP_KEY_STR "\nSHOOT: " SHOOT_KEY_STR;
+
   ClearBackground(BLUE);
   DrawTexture(game->title_sprite, half_width - game->title_sprite.width / 2,
               title_y, WHITE);
+  gui_text(ctrls, 50, WINDOW_HEIGHT / 6, 1.0, ALIGN_LEFT);
   if (gui_button("Start", half_width, next_y + step * 2)) {
     game->state = GAME_RUNNING;
   }
@@ -84,13 +88,18 @@ static void Game_leaderboard_draw(Game *game) {
 /// Game logic function. Runs every frame.
 static void Game_running_update(Game *game) {
   float delta = GetFrameTime();
-  Player_update(&game->player, &game->level, delta);
+
+  Player_update(game, delta);
+  Bullets_update(game, delta);
+
   game->camera.target.x = game->player.pos.x;
   if (Player_is_dead(&game->player)) {
     game->state = GAME_DIED;
+    return;
   }
   if (IsKeyPressed(KEY_ESCAPE)) {
     game->state = GAME_PAUSED;
+    return;
   }
 }
 
@@ -101,6 +110,7 @@ static void Game_running_draw(Game *game) {
   BeginMode2D(game->camera);
   Level_draw(&game->level);
   Player_draw(&game->player);
+  Bullets_draw(game);
   EndMode2D();
 }
 
