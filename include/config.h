@@ -25,6 +25,8 @@
 #define BULLET_SPEED (PLAYER_SIZE * 10)
 
 #define MAX_ENEMIES 10
+#define ENEMY_SIZE 24
+#define ENEMY_MAX_SPEED 10
 
 #define JUMP_KEY KEY_X
 #define MOVE_LEFT_KEY KEY_LEFT
@@ -43,4 +45,13 @@
 #define GUI_FONT_SIZE 40
 #define GUI_PADDING 10
 
-#define DEBUG_MODE (1)
+#define DEBUG_MODE 0
+
+#define ASSETS "assets/"
+
+#define SPRITE_PLAYER ASSETS "player-atlas.png"
+#define SPRITE_BLOCK ASSETS "dirt.png"
+#define SPRITE_OBSTACLE ASSETS "spike.png"
+#define SPRITE_BACKGROUND ASSETS "background.png"
+#define SPRITE_ENEMY ASSETS "enemy-atlas.png"
+#define SPRITE_LOGO ASSETS "inf_man.png"

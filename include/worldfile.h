@@ -8,4 +8,4 @@
 /// with width and height compatible with the level
 /// configuration.
 /// Returns true on success and false on failure.
-bool read_worldfile(char *filepath, Level *level, Enemy *enemies);
+bool read_worldfile(char *filepath, Level *level, EnemyManager *enemy_mgr);

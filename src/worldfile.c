@@ -9,7 +9,7 @@
 #define LINE_WIDTH (LEVEL_WIDTH + 2)
 
 static bool proc_line(Level *level, int line_i, char *line, int *spawn_set,
-                      Enemy *enemies, int *next_enemy) {
+                      EnemyManager *enemy_mgr) {
   int i = 0;
   for (i = 0; line[i] != '\n' && line[i] != '\0'; ++i) {
     char c = line[i];
@@ -27,9 +27,7 @@ static bool proc_line(Level *level, int line_i, char *line, int *spawn_set,
       break;
     case 'M':
       t = TILE_SPACE;
-      enemies[*next_enemy] =
-          (Enemy){Level_matrix_to_world(line_i, i), {0, 0}, true};
-      ++*next_enemy;
+      Enemy_spawn(enemy_mgr, Level_matrix_to_world(line_i, i));
       break;
     case 'P':
       t = TILE_SPACE;
@@ -60,7 +58,7 @@ static bool proc_line(Level *level, int line_i, char *line, int *spawn_set,
 /// with width and height compatible with the level
 /// configuration.
 /// Returns true on success and false on failure.
-bool read_worldfile(char *filepath, Level *level, Enemy *enemies) {
+bool read_worldfile(char *filepath, Level *level, EnemyManager *enemy_mgr) {
 
   FILE *f = fopen(filepath, "r");
   int spawn_point_set = 0;
@@ -86,7 +84,7 @@ bool read_worldfile(char *filepath, Level *level, Enemy *enemies) {
       return false;
     }
 
-    if (!proc_line(level, i, line, &spawn_point_set, enemies, &next_enemy)) {
+    if (!proc_line(level, i, line, &spawn_point_set, enemy_mgr)) {
       return false;
     }
   }

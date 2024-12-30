@@ -1,5 +1,6 @@
 #include "game.h"
 #include "raylib.h"
+#include "texmanager.h"
 
 int main(void) {
   InitWindow(1200, 600, "INF MAN");

@@ -1,11 +1,41 @@
 #include "player.h"
+#include "animator.h"
 #include "bullet.h"
 #include "collision.h"
 #include "config.h"
 #include "game.h"
 #include "level.h"
 #include "raylib.h"
-#include <stdio.h>
+#include <math.h>
+
+static void Player_animator_init(Animator *animator, TextureManager *tex) {
+  animator->curr_sprite = 0;
+  animator->atlas = tex->player;
+  animator->state = PLAYER_IDLE;
+  animator->map_len = 3;
+  animator->map[PLAYER_IDLE] = (Animation){
+      .sub_atlas = (Rectangle){0, 0, 72, 24},
+      .num_sprites = 3,
+      .secs_per_sprite = 0.5,
+  };
+  animator->map[PLAYER_RUNNING] = (Animation){
+      .sub_atlas = (Rectangle){0, 24, 72, 24},
+      .num_sprites = 3,
+      .secs_per_sprite = 0.1,
+  };
+  animator->map[PLAYER_JUMPING] =
+      (Animation){.sub_atlas = (Rectangle){0, 96, 32, 32},
+                  .num_sprites = 1,
+                  .secs_per_sprite = 1};
+}
+
+/// Initializes player to 0 with initial health and sprite.
+void Player_init(Player *p, TextureManager *tex) {
+  *p = (Player){0};
+  p->health = INITIAL_HEALTH;
+  p->direction = DIR_RIGHT;
+  Player_animator_init(&p->animator, tex);
+}
 
 Rectangle Player_hitbox(Player *p, Tile tile) {
   float side = PLAYER_SIZE;
@@ -47,10 +77,11 @@ static Direction collision_direction(Player *p, CollisionMap colls) {
 }
 
 void Player_draw(Player *p) {
+  Rectangle rect = Animator_current_sprite(&p->animator);
   Vector2 translated = p->pos;
-  translated.x -= p->sprite.width / 2.0;
-  translated.y -= p->sprite.height / 2.0;
-  DrawTextureEx(p->sprite, translated, 0.0, 1.0, WHITE);
+  translated.x -= rect.width / 2.0;
+  translated.y -= rect.height / 2.0;
+  Animator_draw(&p->animator, translated, p->direction);
   if (DEBUG_MODE) {
     DrawCircleV(p->pos, PLAYER_SIZE / 10.0, RED);
     DrawCircleV(Player_feet(p), PLAYER_SIZE / 20.0, GREEN);
@@ -78,14 +109,14 @@ void Player_update(Game *game, float delta) {
   // player horizontal movement
   p->velocity.x = 0;
   if (IsKeyDown(MOVE_LEFT_KEY)) {
-    p->velocity.x += -PLAYER_SPEED * delta;
+    p->velocity.x += -PLAYER_SPEED;
     p->direction = DIR_LEFT;
   }
   if (IsKeyDown(MOVE_RIGHT_KEY)) {
-    p->velocity.x += PLAYER_SPEED * delta;
+    p->velocity.x += PLAYER_SPEED;
     p->direction = DIR_RIGHT;
   }
-  p->pos.x += p->velocity.x;
+  p->pos.x += p->velocity.x * delta;
   p->pos.y -= p->velocity.y * delta;
 
   CollisionMap collisions =
@@ -133,5 +164,15 @@ void Player_update(Game *game, float delta) {
   if (obstacle_collisions) {
     p->health = 0;
     // Player_damage(p, collision_direction(p, obstacle_collisions));
+  }
+
+  // animation updating
+  Animator_update(&p->animator, delta);
+  if (p->velocity.y != 0) {
+    Animator_change(&p->animator, PLAYER_JUMPING);
+  } else if (fabsf(p->velocity.x) > 0.1) {
+    Animator_change(&p->animator, PLAYER_RUNNING);
+  } else {
+    Animator_change(&p->animator, PLAYER_IDLE);
   }
 }

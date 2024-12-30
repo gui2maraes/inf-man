@@ -22,7 +22,7 @@ typedef struct Level {
 /// Initializes level with worldfile and generates world texture.
 /// Also populate the enemies array.
 /// returns 0 on failure and non-zero on success.
-int Level_init(Level *level, Enemy *enemies, char *worldfile);
+int Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile);
 /// Transforms a line and column index into the level tile matrix
 /// into 2D world coordinates.
 Vector2 Level_matrix_to_world(int line, int column);

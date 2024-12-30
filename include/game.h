@@ -6,6 +6,7 @@
 #include "level.h"
 #include "player.h"
 #include "raylib.h"
+#include "texmanager.h"
 
 typedef enum GameState {
   GAME_TITLE_SCREEN,
@@ -21,10 +22,10 @@ typedef struct Game {
   Level level;
   Player player;
   Bullet bullets[MAX_BULLETS];
-  Enemy enemies[MAX_ENEMIES];
+  EnemyManager enemy_mgr;
   Camera2D camera;
-  Texture title_sprite;
   Leaderboard leaderboard;
+  TextureManager tex;
 } Game;
 
 /// Initializes a Game struct.

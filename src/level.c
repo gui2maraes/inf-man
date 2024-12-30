@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int Level_init(Level *level, Enemy *enemies, char *worldfile) {
+int Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile) {
   *level = (Level){0};
-  if (!read_worldfile(worldfile, level, enemies)) {
+  if (!read_worldfile(worldfile, level, enemy_mgr)) {
     return 0;
   }
   Level_gen_texture(level);
@@ -80,9 +80,9 @@ static Image build_background(Image bg_tile, Rectangle *bg_rect) {
   return full_bg;
 }
 void Level_gen_texture(Level *level) {
-  Image background_sprite = LoadImage("assets/background.png");
-  Image dirt = LoadImage("assets/dirt.png");
-  Image spike = LoadImage("assets/spike.png");
+  Image background_sprite = LoadImage(SPRITE_BACKGROUND);
+  Image dirt = LoadImage(SPRITE_BLOCK);
+  Image spike = LoadImage(SPRITE_OBSTACLE);
   Rectangle usable_bg = {0};
   Image background = build_background(background_sprite, &usable_bg);
   // ImageDrawRectangleRec(&background, usable_bg, WHITE);
@@ -116,4 +116,6 @@ void Level_gen_texture(Level *level) {
   level->sprite = LoadTextureFromImage(background);
   level->sprite_offset = (Vector2){usable_bg.x, usable_bg.y};
   UnloadImage(background_sprite);
+  UnloadImage(dirt);
+  UnloadImage(spike);
 }
