@@ -2,11 +2,35 @@
 #include "raylib.h"
 #include "utils.h"
 
+Animation Animation_new(Rectangle sub_atlas, int num_sprites,
+                        float secs_per_sprite) {
+  /// -1 indicates no next state
+  return (Animation){sub_atlas, num_sprites, secs_per_sprite};
+}
+
+void Animator_init(Animator *animator, Texture atlas) {
+  animator->atlas = atlas;
+  animator->state = 0;
+  animator->curr_sprite = 0;
+  animator->timer = 0;
+  for (int i = 0; i < ANIMATION_MAP_SIZE; ++i) {
+    animator->map[i] = (Animation){0};
+  }
+}
+void Animator_add(Animator *animator, int state, Animation animation) {
+  if (state >= ANIMATION_MAP_SIZE) {
+    error_out("invalid animation state index");
+    return;
+  }
+  animator->map[state] = animation;
+}
+
 void Animator_update(Animator *animator, float delta) {
   animator->timer += delta;
   Animation *anim = &animator->map[animator->state];
   while (animator->timer > anim->secs_per_sprite) {
-    animator->curr_sprite = (animator->curr_sprite + 1) % anim->num_sprites;
+    int next_sprite = animator->curr_sprite + 1;
+    animator->curr_sprite = next_sprite % anim->num_sprites;
     animator->timer -= anim->secs_per_sprite;
   }
 }
@@ -23,7 +47,8 @@ static Rectangle Animation_sprite(Animation *animation, int sprite_n) {
 void Animator_draw(Animator *animator, Vector2 pos, Direction direction) {
   Animation *anim = &animator->map[animator->state];
   Rectangle sprite_rect = Animation_sprite(anim, animator->curr_sprite);
-  // DrawTexture(animator->atlas, pos.x, pos.y, WHITE);
+  pos.x -= sprite_rect.width / 2.0;
+  pos.y -= sprite_rect.height / 2.0;
   if (direction == DIR_RIGHT) {
     sprite_rect.width *= -1;
   }
@@ -33,7 +58,7 @@ void Animator_change(Animator *animator, int new_state) {
   if (animator->state == new_state) {
     return;
   }
-  if (new_state >= animator->map_len) {
+  if (new_state >= ANIMATION_MAP_SIZE) {
     error_out("invalid animation state.");
     return;
   }

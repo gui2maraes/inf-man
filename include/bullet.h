@@ -1,4 +1,6 @@
 #pragma once
+#include "collision.h"
+#include "enemy.h"
 #include "player.h"
 #include "raylib.h"
 #include <stdbool.h>
@@ -12,10 +14,11 @@ typedef struct Bullet {
 } Bullet;
 
 /// Returns the Rectangle containing the bullet.
-Rectangle Bullet_hitbox(Bullet *bullet);
+Hitbox Bullet_hitbox(Bullet *bullet);
 
 /// Updates the bullet position and kill it when it leaves the screen.
-void Bullet_update(Bullet *bullet, Player *p, float delta);
+void Bullet_update(Bullet *bullet, Player *p, EnemyManager *enemy_mgr,
+                   float cutoff_distance, float delta);
 void Bullets_update(Game *game, float delta);
 
 /// Draws a bullet if it's alive

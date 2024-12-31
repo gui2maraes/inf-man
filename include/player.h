@@ -18,7 +18,9 @@ typedef struct Player {
   Direction direction;
   bool already_jumped;
   float invincible_time;
+  float shooting_time;
   Animator animator;
+  Animator shooting;
 
 } Player;
 

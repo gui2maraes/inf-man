@@ -1,9 +1,10 @@
 #include "gui.h"
 #include "config.h"
+#include "player.h"
 #include "raylib.h"
 #include <stdio.h>
 
-void gui_text(char *text, int x, int y, float font_scale, TextAlign align) {
+Vector2 gui_text(char *text, int x, int y, float font_scale, TextAlign align) {
   int text_size = MeasureText(text, GUI_FONT_SIZE * font_scale);
   int offset;
   switch (align) {
@@ -18,13 +19,16 @@ void gui_text(char *text, int x, int y, float font_scale, TextAlign align) {
     break;
   }
 
+  DrawText(text, x - offset + 3, y + 3, GUI_FONT_SIZE * font_scale, DARKGRAY);
   DrawText(text, x - offset, y, GUI_FONT_SIZE * font_scale, WHITE);
+  return (Vector2){x - offset + text_size, y + GUI_FONT_SIZE * font_scale};
 }
 
-void gui_number(int number, int x, int y, float font_scale, TextAlign align) {
+Vector2 gui_number(int number, int x, int y, float font_scale,
+                   TextAlign align) {
   char txt[20] = {0};
   snprintf(txt, 20, "%d", number);
-  gui_text(txt, x, y, font_scale, align);
+  return gui_text(txt, x, y, font_scale, align);
 }
 
 int gui_button(char *label, int x, int y) {
@@ -41,4 +45,11 @@ int gui_button(char *label, int x, int y) {
   }
   DrawText(label, rect.x, rect.y, GUI_FONT_SIZE, col);
   return out;
+}
+
+void gui_stats(Player *player, int x, int y) {
+  Vector2 next = gui_text("Lives: ", x, y, 1, ALIGN_LEFT);
+  gui_number(player->health, next.x, y, 1, ALIGN_LEFT);
+  Vector2 next2 = gui_text("Score: ", x, next.y, 1, ALIGN_LEFT);
+  gui_number(player->record.score, next2.x, next.y, 1, ALIGN_LEFT);
 }

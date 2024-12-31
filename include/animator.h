@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #define ANIMATION_MAP_SIZE 5
+#define NO_NEXT_STATE (-1)
 
 /// Represents an animation.
 typedef struct Animation {
@@ -18,8 +19,6 @@ typedef struct Animation {
 typedef struct Animator {
   /// Array containing all the animations
   Animation map[ANIMATION_MAP_SIZE];
-  /// Size of the animation map
-  int map_len;
   /// Atlas containing all the animations
   Texture atlas;
   /// Index of the active animation.
@@ -29,6 +28,15 @@ typedef struct Animator {
   /// Keeps count of elapsed time.
   float timer;
 } Animator;
+
+/// Creates a new animation.
+Animation Animation_new(Rectangle sub_atlas, int num_sprites,
+                        float secs_per_sprite);
+
+/// Initializes an animator with a texture atlas.
+void Animator_init(Animator *animator, Texture atlas);
+/// Adds an animation to the animator.
+void Animator_add(Animator *animator, int state, Animation animation);
 
 Rectangle Animator_current_sprite(Animator *animator);
 /// Updates the sprite of the animation currently playing.

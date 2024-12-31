@@ -3,30 +3,32 @@
 #include "bullet.h"
 #include "collision.h"
 #include "config.h"
+#include "enemy.h"
 #include "game.h"
 #include "level.h"
 #include "raylib.h"
 #include <math.h>
 
 static void Player_animator_init(Animator *animator, TextureManager *tex) {
-  animator->curr_sprite = 0;
-  animator->atlas = tex->player;
-  animator->state = PLAYER_IDLE;
-  animator->map_len = 3;
-  animator->map[PLAYER_IDLE] = (Animation){
-      .sub_atlas = (Rectangle){0, 0, 72, 24},
-      .num_sprites = 3,
-      .secs_per_sprite = 0.5,
-  };
-  animator->map[PLAYER_RUNNING] = (Animation){
-      .sub_atlas = (Rectangle){0, 24, 72, 24},
-      .num_sprites = 3,
-      .secs_per_sprite = 0.1,
-  };
-  animator->map[PLAYER_JUMPING] =
-      (Animation){.sub_atlas = (Rectangle){0, 96, 32, 32},
-                  .num_sprites = 1,
-                  .secs_per_sprite = 1};
+  Animator_init(animator, tex->player);
+  Animator_change(animator, PLAYER_IDLE);
+  Animator_add(animator, PLAYER_IDLE,
+               Animation_new((Rectangle){0, 0, 72, 24}, 3, 0.5));
+  Animator_add(animator, PLAYER_RUNNING,
+               Animation_new((Rectangle){0, 24, 72, 24}, 3, 0.1));
+  Animator_add(animator, PLAYER_JUMPING,
+               Animation_new((Rectangle){0, 96, 32, 32}, 1, 1));
+}
+static void Player_animator_shooting_init(Animator *animator,
+                                          TextureManager *tex) {
+  Animator_init(animator, tex->player);
+  Animator_change(animator, PLAYER_IDLE);
+  Animator_add(animator, PLAYER_IDLE,
+               Animation_new((Rectangle){0, 48, 32, 24}, 1, 1));
+  Animator_add(animator, PLAYER_RUNNING,
+               Animation_new((Rectangle){0, 72, 96, 24}, 3, 0.1));
+  Animator_add(animator, PLAYER_JUMPING,
+               Animation_new((Rectangle){32, 96, 32, 32}, 1, 1));
 }
 
 /// Initializes player to 0 with initial health and sprite.
@@ -35,6 +37,7 @@ void Player_init(Player *p, TextureManager *tex) {
   p->health = INITIAL_HEALTH;
   p->direction = DIR_RIGHT;
   Player_animator_init(&p->animator, tex);
+  Player_animator_shooting_init(&p->shooting, tex);
 }
 
 Rectangle Player_hitbox(Player *p, Tile tile) {
@@ -44,6 +47,9 @@ Rectangle Player_hitbox(Player *p, Tile tile) {
   }
   return (Rectangle){
       .x = p->pos.x, .y = p->pos.y, .width = side, .height = side};
+}
+Hitbox Player_enemy_hitbox(Player *p) {
+  return (Hitbox){p->pos, PLAYER_SIZE / 2.0};
 }
 bool Player_is_dead(Player *p) { return p->health <= 0; }
 
@@ -77,22 +83,32 @@ static Direction collision_direction(Player *p, CollisionMap colls) {
 }
 
 void Player_draw(Player *p) {
-  Rectangle rect = Animator_current_sprite(&p->animator);
-  Vector2 translated = p->pos;
-  translated.x -= rect.width / 2.0;
-  translated.y -= rect.height / 2.0;
-  Animator_draw(&p->animator, translated, p->direction);
-  if (DEBUG_MODE) {
-    DrawCircleV(p->pos, PLAYER_SIZE / 10.0, RED);
-    DrawCircleV(Player_feet(p), PLAYER_SIZE / 20.0, GREEN);
-    DrawCircleV(Player_edge(p, -1), PLAYER_SIZE / 20.0, BLUE);
-    DrawCircleV(Player_edge(p, 1), PLAYER_SIZE / 20.0, BLUE);
+  float inv = p->invincible_time;
+  if (inv > 0 && (int)(inv * 10) % 2) {
+    return;
   }
+  Rectangle rect = Animator_current_sprite(&p->animator);
+  if (p->shooting_time > 0.0) {
+    Animator_draw(&p->shooting, p->pos, p->direction);
+  } else {
+    Animator_draw(&p->animator, p->pos, p->direction);
+  }
+  if (DEBUG_MODE) {
+    Hitbox hb = Player_enemy_hitbox(p);
+    DrawCircleV(hb.pos, hb.radius, RED);
+  }
+}
+
+static void Player_collide_enemies(Game *game) {
+  Player *p = &game->player;
+  Rectangle p_hitbox = Player_hitbox(p, TILE_OBSTACLE);
 }
 
 void Player_update(Game *game, float delta) {
   Player *p = &game->player;
   Level *level = &game->level;
+  EnemyManager *enemy_mgr = &game->enemy_mgr;
+  Animator *anim = &p->animator;
   //  if the player is out of level bounds, kill it.
   if (p->pos.y > LEVEL_HEIGHT * TILE_SIZE + PLAYER_SIZE) {
     p->health = 0;
@@ -103,21 +119,36 @@ void Player_update(Game *game, float delta) {
   if (p->invincible_time > 0) {
     p->invincible_time -= delta;
   }
+  if (p->shooting_time > 0) {
+    p->shooting_time -= delta;
+  }
   if (IsKeyPressed(KEY_Z)) {
     Bullet_spawn(game);
+    p->shooting_time = PLAYER_SHOOTING_TIME;
+  }
+  if (p->shooting_time > 0) {
+    anim = &p->shooting;
   }
   // player horizontal movement
-  p->velocity.x = 0;
-  if (IsKeyDown(MOVE_LEFT_KEY)) {
-    p->velocity.x += -PLAYER_SPEED;
-    p->direction = DIR_LEFT;
-  }
-  if (IsKeyDown(MOVE_RIGHT_KEY)) {
-    p->velocity.x += PLAYER_SPEED;
-    p->direction = DIR_RIGHT;
+  if (p->invincible_time < PLAYER_INVINCIBILITY / 2.0) {
+    p->velocity.x = 0;
+    if (IsKeyDown(MOVE_LEFT_KEY)) {
+      p->velocity.x += -PLAYER_SPEED;
+      p->direction = DIR_LEFT;
+    }
+    if (IsKeyDown(MOVE_RIGHT_KEY)) {
+      p->velocity.x += PLAYER_SPEED;
+      p->direction = DIR_RIGHT;
+    }
   }
   p->pos.x += p->velocity.x * delta;
   p->pos.y -= p->velocity.y * delta;
+
+  // check collision with enemies
+  if (p->invincible_time <= 0 &&
+      EnemyManager_colliding_with(enemy_mgr, Player_enemy_hitbox(p))) {
+    Player_damage(p, DIR_RIGHT);
+  }
 
   CollisionMap collisions =
       resolve_collisions(level, Player_hitbox(p, TILE_BLOCK), TILE_BLOCK);
@@ -161,18 +192,18 @@ void Player_update(Game *game, float delta) {
   // if colliding with any obstacle, kill the player.
   CollisionMap obstacle_collisions =
       resolve_collisions(level, Player_hitbox(p, TILE_OBSTACLE), TILE_OBSTACLE);
-  if (obstacle_collisions) {
+  if (obstacle_collisions && p->invincible_time <= 0) {
     p->health = 0;
     // Player_damage(p, collision_direction(p, obstacle_collisions));
   }
 
   // animation updating
-  Animator_update(&p->animator, delta);
+  Animator_update(anim, delta);
   if (p->velocity.y != 0) {
-    Animator_change(&p->animator, PLAYER_JUMPING);
+    Animator_change(anim, PLAYER_JUMPING);
   } else if (fabsf(p->velocity.x) > 0.1) {
-    Animator_change(&p->animator, PLAYER_RUNNING);
+    Animator_change(anim, PLAYER_RUNNING);
   } else {
-    Animator_change(&p->animator, PLAYER_IDLE);
+    Animator_change(anim, PLAYER_IDLE);
   }
 }

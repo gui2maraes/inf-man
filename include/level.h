@@ -1,4 +1,5 @@
 #pragma once
+#include "collision.h"
 #include "config.h"
 #include "enemy.h"
 #include "raylib.h"
@@ -36,3 +37,8 @@ void Level_draw(Level *level);
 int Level_coord_is_tile(Level *l, Vector2 v, Tile tile);
 
 Vector2 Level_align_coord_tile_center(Vector2 coords);
+
+/// Checks for collisions against a tile type. Returns
+/// a bitmap containing the collision directions.
+CollisionMap resolve_collisions(Level *level, Rectangle hitbox,
+                                Tile checked_tile);

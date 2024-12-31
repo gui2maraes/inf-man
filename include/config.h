@@ -2,7 +2,7 @@
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 600
-#define GAME_SCALE ((float)1200 / (LEVEL_HEIGHT * TILE_SIZE * 2))
+#define GAME_SCALE ((float)WINDOW_WIDTH / (LEVEL_HEIGHT * TILE_SIZE * 2))
 
 #define LEVEL_WIDTH 200
 #define LEVEL_HEIGHT 10
@@ -17,16 +17,18 @@
 #define PLAYER_JUMP_FORCE 11
 #define PLAYER_JUMP_DIVIDER 2.0
 #define PLAYER_INVINCIBILITY 1.0
-#define PLAYER_DAMAGE_RECOIL 1
+#define PLAYER_SHOOTING_TIME 0.5
+#define PLAYER_DAMAGE_RECOIL 5
 
 #define MAX_BULLETS 3
-#define BULLET_WIDTH 10
-#define BULLET_HEIGHT 5
-#define BULLET_SPEED (PLAYER_SIZE * 10)
+#define BULLET_WIDTH 6
+#define BULLET_HEIGHT 3
+#define BULLET_SPEED (PLAYER_SPEED * 2)
 
 #define MAX_ENEMIES 10
-#define ENEMY_SIZE 24
+#define ENEMY_SIZE 16
 #define ENEMY_MAX_SPEED 10
+#define ENEMY_PTS 100
 
 #define JUMP_KEY KEY_X
 #define MOVE_LEFT_KEY KEY_LEFT
@@ -50,7 +52,7 @@
 #define ASSETS "assets/"
 
 #define SPRITE_PLAYER ASSETS "player-atlas.png"
-#define SPRITE_BLOCK ASSETS "dirt.png"
+#define SPRITE_BLOCK ASSETS "tile1.png"
 #define SPRITE_OBSTACLE ASSETS "spike.png"
 #define SPRITE_BACKGROUND ASSETS "background.png"
 #define SPRITE_ENEMY ASSETS "enemy-atlas.png"

@@ -2,7 +2,6 @@
 #include "config.h"
 #include "enemy.h"
 #include "level.h"
-#include "utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -27,7 +26,7 @@ static bool proc_line(Level *level, int line_i, char *line, int *spawn_set,
       break;
     case 'M':
       t = TILE_SPACE;
-      Enemy_spawn(enemy_mgr, Level_matrix_to_world(line_i, i));
+      EnemyManager_add(enemy_mgr, Level_matrix_to_world(line_i, i));
       break;
     case 'P':
       t = TILE_SPACE;

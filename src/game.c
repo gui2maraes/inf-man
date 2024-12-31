@@ -14,18 +14,22 @@
 int Game_init(Game *game) {
   *game = (Game){0};
   game->state = GAME_TITLE_SCREEN;
-  game->camera.zoom = GAME_SCALE;
-  game->camera.offset.x = WINDOW_WIDTH / 2.0;
   TextureManager_load(&game->tex);
   EnemyManager_init(&game->enemy_mgr, &game->tex);
-  // game->camera.offset.y = WINDOW_HEIGHT / 2.0;
   if (!Level_init(&game->level, &game->enemy_mgr, WORLDFILE_PATH)) {
     return 0;
   }
   Player_init(&game->player, &game->tex);
+  EnemyManager_spawn(&game->enemy_mgr);
   game->player.pos = game->level.spawn_point;
+  game->camera.target.y = 0;
+  // make camera picture the whole background height.
+  game->camera.zoom = (float)WINDOW_WIDTH / (game->level.sprite.height * 2);
+  // offset to center in player
+  game->camera.offset.x = WINDOW_WIDTH / 2.0;
+  // cancel out the level drawing offset
+  game->camera.offset.y = game->level.sprite_offset.y * game->camera.zoom;
 
-  // game->title_sprite = LoadTexture("assets/inf_man.png");
   printf("Spawn point: x: %f, y: %f", game->level.spawn_point.x,
          game->level.spawn_point.y);
   if (!Leaderboard_init(&game->leaderboard, LEADERBOARD_FILE)) {
@@ -35,6 +39,7 @@ int Game_init(Game *game) {
 }
 
 static void Game_reset(Game *game) {
+  EnemyManager_spawn(&game->enemy_mgr);
   Player_init(&game->player, &game->tex);
   game->player.pos = game->level.spawn_point;
 }
@@ -117,6 +122,7 @@ static void Game_running_draw(Game *game) {
   EnemyManager_draw(&game->enemy_mgr);
   Bullets_draw(game);
   EndMode2D();
+  gui_stats(&game->player, 10, 50);
 }
 
 static void Game_paused_draw(Game *game) {

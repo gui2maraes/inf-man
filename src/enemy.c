@@ -1,17 +1,17 @@
 #include "enemy.h"
 #include "animator.h"
+#include "collision.h"
 #include "config.h"
 #include "game.h"
 #include "player.h"
+#include "raylib.h"
 #include "raymath.h"
-#include <stdio.h>
+#include <stdbool.h>
 
-void Enemy_Animator_init(Animator *animator, TextureManager *tex) {
-  animator->atlas = tex->enemy;
-  animator->curr_sprite = 0;
-  animator->state = 0;
-  animator->map_len = 1;
-  animator->map[0] = (Animation){{0, 0, 48, 24}, 2, 0.1};
+static void Enemy_Animator_init(Animator *animator, TextureManager *tex) {
+  Animator_init(animator, tex->enemy);
+  Animator_add(animator, 0, Animation_new((Rectangle){0, 0, 48, 24}, 2, 0.1));
+  Animator_change(animator, 0);
 }
 
 void EnemyManager_init(EnemyManager *enemy_mgr, TextureManager *tex) {
@@ -19,20 +19,25 @@ void EnemyManager_init(EnemyManager *enemy_mgr, TextureManager *tex) {
   Enemy_Animator_init(&enemy_mgr->animator, tex);
 }
 
-void Enemy_spawn(EnemyManager *enemy_mgr, Vector2 pos) {
+void EnemyManager_add(EnemyManager *enemy_mgr, Vector2 pos) {
   if (enemy_mgr->enemies_len >= MAX_ENEMIES) {
     error_out("Max enemy number reached");
     return;
   }
-  Enemy *enemy = &enemy_mgr->enemies[enemy_mgr->enemies_len++];
-  enemy->alive = true;
-  enemy->dir = DIR_LEFT;
-  enemy->pos = pos;
-  enemy->velocity = (Vector2){0};
+  enemy_mgr->spawn_positions[enemy_mgr->enemies_len++] = pos;
+}
+void EnemyManager_spawn(EnemyManager *enemy_mgr) {
+  for (int i = 0; i < enemy_mgr->enemies_len; ++i) {
+    Enemy *enemy = &enemy_mgr->enemies[i];
+    enemy->alive = true;
+    enemy->dir = DIR_LEFT;
+    enemy->pos = enemy_mgr->spawn_positions[i];
+    enemy->velocity = (Vector2){0};
+  }
 }
 
-Rectangle Enemy_hitbox(Enemy *enemy) {
-  return (Rectangle){enemy->pos.x, enemy->pos.y, ENEMY_SIZE, ENEMY_SIZE};
+static Hitbox Enemy_hitbox(Enemy *enemy) {
+  return (Hitbox){enemy->pos, ENEMY_SIZE / 2.0};
 }
 
 static void Enemy_update(Enemy *enemy, Player *player, float delta) {
@@ -65,5 +70,23 @@ void EnemyManager_draw(EnemyManager *enemy_mgr) {
       continue;
     }
     Animator_draw(&enemy_mgr->animator, enemy->pos, enemy->dir);
+    if (DEBUG_MODE) {
+      Hitbox hb = Enemy_hitbox(enemy);
+      DrawCircleV(hb.pos, hb.radius, RED);
+    }
   }
+}
+
+Enemy *EnemyManager_colliding_with(EnemyManager *enemy_mgr, Hitbox hitbox) {
+  for (int i = 0; i < enemy_mgr->enemies_len; ++i) {
+    Enemy *enemy = &enemy_mgr->enemies[i];
+    if (!enemy->alive) {
+      continue;
+    }
+    Hitbox hb = Enemy_hitbox(enemy);
+    if (CheckCollisionCircles(hb.pos, hb.radius, hitbox.pos, hitbox.radius)) {
+      return enemy;
+    }
+  }
+  return 0;
 }

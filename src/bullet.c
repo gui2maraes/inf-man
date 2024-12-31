@@ -1,36 +1,50 @@
 #include "bullet.h"
+#include "collision.h"
 #include "config.h"
+#include "enemy.h"
 #include "game.h"
 #include "player.h"
 #include <math.h>
 
-Rectangle Bullet_hitbox(Bullet *bullet) {
-  Rectangle rec;
-  rec.x = bullet->pos.x;
-  rec.y = bullet->pos.y;
-  rec.width = BULLET_WIDTH;
-  rec.height = BULLET_HEIGHT;
-  return rec;
+Hitbox Bullet_hitbox(Bullet *bullet) {
+  return (Hitbox){bullet->pos, BULLET_HEIGHT};
 }
 
-void Bullet_update(Bullet *bullet, Player *p, float delta) {
-  if (fabs(bullet->pos.x - p->pos.x) > WINDOW_WIDTH / GAME_SCALE / 2.0) {
+void Bullet_update(Bullet *bullet, Player *p, EnemyManager *enemy_mgr,
+                   float cutoff_distance, float delta) {
+  if (fabs(bullet->pos.x - p->pos.x) > cutoff_distance) {
     bullet->alive = false;
   }
   if (!bullet->alive) {
     return;
   }
   bullet->pos.x += bullet->velocity * delta;
+  Enemy *enemy = EnemyManager_colliding_with(enemy_mgr, Bullet_hitbox(bullet));
+  if (enemy) {
+    enemy->alive = false;
+    bullet->alive = false;
+    p->record.score += ENEMY_PTS;
+  }
 }
 void Bullets_update(Game *game, float delta) {
+  float cutoff = WINDOW_WIDTH / game->camera.zoom / 2.0;
   for (int i = 0; i < MAX_BULLETS; ++i) {
-    Bullet_update(&game->bullets[i], &game->player, delta);
+    Bullet_update(&game->bullets[i], &game->player, &game->enemy_mgr, cutoff,
+                  delta);
   }
 }
 
 void Bullet_draw(Bullet *bullet) {
+  // Rectangle rect = Bullet_hitbox(bullet);
+  // rect.x -= rect.width / 2;
+  // rect.y -= rect.height / 2;
   if (bullet->alive) {
-    DrawRectangleRec(Bullet_hitbox(bullet), YELLOW);
+    // DrawRectangleRec(rect, YELLOW);
+    Hitbox hb = Bullet_hitbox(bullet);
+    DrawCircleV(hb.pos, hb.radius, YELLOW);
+    // if (DEBUG_MODE) {
+    //   DrawRectangleRec(Bullet_hitbox(bullet), ColorAlpha(RED, 0.5));
+    // }
   }
 }
 void Bullets_draw(Game *game) {
