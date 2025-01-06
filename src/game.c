@@ -7,20 +7,9 @@
 #include "utils.h"
 #include <stdio.h>
 
-/// Initializes all the game state.
-/// Loads the worldfile, generates the level texture
-/// and initializes player and enemies.
-/// Returns 1 on success and 0 on failure
-int Game_init(Game *game) {
-  *game = (Game){0};
-  game->state = GAME_TITLE_SCREEN;
-  TextureManager_load(&game->tex);
-  EnemyManager_init(&game->enemy_mgr, &game->tex);
-  if (!Level_init(&game->level, &game->enemy_mgr, WORLDFILE_PATH)) {
-    return 0;
-  }
-  Player_init(&game->player, &game->tex);
+static void Game_running_init(Game *game) {
   EnemyManager_spawn(&game->enemy_mgr);
+  Player_init(&game->player, &game->tex);
   game->player.pos = game->level.spawn_point;
   game->camera.target.y = 0;
   // make camera picture the whole background height.
@@ -29,20 +18,37 @@ int Game_init(Game *game) {
   game->camera.offset.x = WINDOW_WIDTH / 2.0;
   // cancel out the level drawing offset
   game->camera.offset.y = game->level.sprite_offset.y * game->camera.zoom;
+}
 
-  printf("Spawn point: x: %f, y: %f", game->level.spawn_point.x,
-         game->level.spawn_point.y);
+void Game_change_state(Game *game, GameState new_state) {
+  switch (new_state) {
+  case GAME_RUNNING:
+    if (game->state != GAME_PAUSED) {
+      Game_running_init(game);
+    }
+    break;
+  default:
+    break;
+  }
+  game->state = new_state;
+}
+
+/// Initializes all the game state.
+/// Loads the worldfile, generates the level texture
+/// and initializes player and enemies.
+/// Returns 1 on success and 0 on failure
+int Game_init(Game *game) {
+  *game = (Game){0};
+  TextureManager_load(&game->tex);
+  EnemyManager_init(&game->enemy_mgr, &game->tex);
+  if (!Level_init(&game->level, &game->enemy_mgr, WORLDFILE_PATH)) {
+    return 0;
+  }
   if (!Leaderboard_init(&game->leaderboard, LEADERBOARD_FILE)) {
     return 0;
   }
-  game->player.record.name[0] = 'a';
+  Game_change_state(game, GAME_TITLE_SCREEN);
   return 1;
-}
-
-static void Game_reset(Game *game) {
-  EnemyManager_spawn(&game->enemy_mgr);
-  Player_init(&game->player, &game->tex);
-  game->player.pos = game->level.spawn_point;
 }
 
 /// Draws the Game title screen
@@ -60,13 +66,13 @@ static void Game_menu_draw(Game *game) {
   DrawTexture(logo, half_width - logo.width / 2, title_y, WHITE);
   gui_text(ctrls, 50, WINDOW_HEIGHT / 6, 1.0, ALIGN_LEFT);
   if (gui_button("Start", half_width, next_y + step * 2)) {
-    game->state = GAME_RUNNING;
+    Game_change_state(game, GAME_RUNNING);
   }
   if (gui_button("Leaderboard", half_width, next_y + step * 3)) {
-    game->state = GAME_LEADERBOARD;
+    Game_change_state(game, GAME_LEADERBOARD);
   }
   if (gui_button("Exit", half_width, next_y + step * 4)) {
-    game->state = GAME_CLOSE;
+    Game_change_state(game, GAME_CLOSE);
   }
 }
 
@@ -90,7 +96,7 @@ static void Game_leaderboard_draw(Game *game) {
   }
   next_y += GUI_FONT_SIZE;
   if (gui_button("Back", half_width, next_y)) {
-    game->state = GAME_TITLE_SCREEN;
+    Game_change_state(game, GAME_TITLE_SCREEN);
   }
 }
 
@@ -142,11 +148,10 @@ static void Game_paused_draw(Game *game) {
   next_y += GUI_FONT_SIZE * 2;
 
   if (gui_button("Resume", WINDOW_WIDTH / 3, next_y)) {
-    game->state = GAME_RUNNING;
+    Game_change_state(game, GAME_RUNNING);
   }
   if (gui_button("Quit", 2 * WINDOW_WIDTH / 3, next_y)) {
-    game->state = GAME_TITLE_SCREEN;
-    Game_reset(game);
+    Game_change_state(game, GAME_TITLE_SCREEN);
   }
 }
 static void Game_died_draw(Game *game) {
@@ -162,18 +167,16 @@ static void Game_died_draw(Game *game) {
   next_y += GUI_FONT_SIZE * 2;
 
   if (gui_button("Retry", WINDOW_WIDTH / 3, next_y)) {
-    game->state = GAME_RUNNING;
-    Game_reset(game);
+    Game_change_state(game, GAME_RUNNING);
   }
   if (gui_button("Quit", 2 * WINDOW_WIDTH / 3, next_y)) {
-    game->state = GAME_TITLE_SCREEN;
-    Game_reset(game);
+    Game_change_state(game, GAME_TITLE_SCREEN);
   }
 }
 
 static void Game_paused_update(Game *game) {
   if (IsKeyPressed(KEY_ESCAPE)) {
-    game->state = GAME_RUNNING;
+    Game_change_state(game, GAME_RUNNING);
   }
 }
 static void Game_won_draw(Game *game) {
@@ -195,14 +198,13 @@ static void Game_won_draw(Game *game) {
     if (gui_button("Save and quit", WINDOW_WIDTH / 2, next.y)) {
       Leaderboard_update(lb, &p->record);
       Leaderboard_save(lb, LEADERBOARD_FILE);
-      game->state = GAME_TITLE_SCREEN;
+      Game_change_state(game, GAME_TITLE_SCREEN);
     }
   }
   if (gui_button("Quit", WINDOW_WIDTH / 2, WINDOW_HEIGHT - GUI_FONT_SIZE * 2)) {
-    game->state = GAME_TITLE_SCREEN;
+    Game_change_state(game, GAME_TITLE_SCREEN);
   }
 }
-static void Game_won_update(Game *game) {}
 
 /// Draws the game depending on its game state.
 void Game_draw(Game *game) {

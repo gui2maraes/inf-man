@@ -38,3 +38,4 @@ int Game_update(Game *game);
 void Game_draw(Game *game);
 
 void Game_collide(Game *game);
+void Game_change_state(Game *game, GameState new_state);
