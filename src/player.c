@@ -24,7 +24,7 @@ static void Player_animator_shooting_init(Animator *animator,
   Animator_init(animator, tex->player);
   Animator_change(animator, PLAYER_IDLE);
   Animator_add(animator, PLAYER_IDLE,
-               Animation_new((Rectangle){0, 48, 32, 24}, 1, 1));
+               Animation_new((Rectangle){0, 48, 38, 24}, 1, 1));
   Animator_add(animator, PLAYER_RUNNING,
                Animation_new((Rectangle){0, 72, 96, 24}, 3, 0.1));
   Animator_add(animator, PLAYER_JUMPING,
@@ -148,12 +148,6 @@ void Player_update(Game *game, float delta) {
   p->pos.x += p->velocity.x * delta;
   p->pos.y -= p->velocity.y * delta;
 
-  // check collision with enemies
-  if (p->invincible_time <= 0 &&
-      EnemyManager_colliding_with(enemy_mgr, Player_enemy_hitbox(p))) {
-    Player_damage(p, DIR_RIGHT);
-  }
-
   CollisionMap collisions =
       resolve_collisions(level, Player_hitbox(p, TILE_BLOCK), TILE_BLOCK);
   Vector2 aligned = Level_align_coord_tile_center(p->pos);
@@ -191,6 +185,11 @@ void Player_update(Game *game, float delta) {
     if (IsKeyReleased(JUMP_KEY) && p->velocity.y > 0) {
       p->velocity.y /= PLAYER_JUMP_DIVIDER;
     }
+  }
+  // check collision with enemies
+  if (p->invincible_time <= 0 &&
+      EnemyManager_colliding_with(enemy_mgr, Player_enemy_hitbox(p))) {
+    Player_damage(p, DIR_RIGHT);
   }
 
   // if colliding with any obstacle, kill the player.

@@ -6,6 +6,7 @@ static inline void error_out(char *msg) {
   fprintf(stderr, "error: %s", msg);
   exit(1);
 }
+float fsign(float x);
 
 typedef enum Direction {
   DIR_LEFT = -1,

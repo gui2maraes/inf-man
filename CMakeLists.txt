@@ -17,6 +17,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(raylib)
 
 add_executable(infman src/main.c src/level.c src/player.c src/worldfile.c
-    src/game.c src/collision.c src/leaderboard.c src/gui.c src/bullet.c src/enemy.c src/texmanager.c src/animator.c)
+    src/game.c src/collision.c src/leaderboard.c src/gui.c src/bullet.c src/enemy.c src/texmanager.c src/animator.c src/utils.c)
 target_include_directories(infman PUBLIC include)
 target_link_libraries(infman PRIVATE raylib)

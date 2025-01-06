@@ -7,12 +7,21 @@
 #include <stdbool.h>
 
 typedef struct Game Game;
+typedef enum AttackStage {
+  ATTACK_NULL,
+  ATTACK_ENTER,
+  ATTACK_LEAVE,
+  ATTACK_FINISH,
+} AttackStage;
 
 typedef struct Enemy {
+  Vector2 last_pos;
   Vector2 pos;
-  Vector2 velocity;
   bool alive;
   Direction dir;
+  AttackStage attack;
+  Vector2 target_pos;
+
 } Enemy;
 
 typedef struct EnemyManager {
@@ -22,6 +31,9 @@ typedef struct EnemyManager {
   int enemies_len;
 
 } EnemyManager;
+
+/// Initializes an enemy at pos
+void Enemy_init(Enemy *enemy, Vector2 pos);
 
 /// Initializes the EnemyManager
 void EnemyManager_init(EnemyManager *enemy_mgr, TextureManager *tex);
