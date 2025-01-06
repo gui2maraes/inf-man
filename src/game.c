@@ -35,6 +35,7 @@ int Game_init(Game *game) {
   if (!Leaderboard_init(&game->leaderboard, LEADERBOARD_FILE)) {
     return 0;
   }
+  game->player.record.name[0] = 'a';
   return 1;
 }
 
@@ -110,6 +111,10 @@ static void Game_running_update(Game *game) {
     game->state = GAME_PAUSED;
     return;
   }
+  if (IsKeyPressed(KEY_W)) {
+    game->state = GAME_WON;
+    return;
+  }
 }
 
 /// Draw everything in the game. Runs every frame.
@@ -171,6 +176,33 @@ static void Game_paused_update(Game *game) {
     game->state = GAME_RUNNING;
   }
 }
+static void Game_won_draw(Game *game) {
+  Player *p = &game->player;
+  Leaderboard *lb = &game->leaderboard;
+  Game_running_draw(game);
+  DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, ColorAlpha(GREEN, 0.5));
+  DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, ColorAlpha(BLACK, 0.2));
+  int next_y = WINDOW_HEIGHT / 6;
+  Vector2 next =
+      gui_text("YOU WON!", WINDOW_WIDTH / 2, next_y, 1.5, ALIGN_CENTER);
+  next = gui_stats(&game->player, WINDOW_WIDTH / 2 - 100, next.y);
+  bool contender = Leaderboard_is_contender(lb, p->record.score);
+  if (contender) {
+    next = gui_text("HIGHSCORE! Enter your name:", WINDOW_WIDTH / 2, next.y,
+                    1.0, ALIGN_CENTER);
+    next = gui_textbox(game->player.record.name, WINDOW_WIDTH / 2, next.y,
+                       ALIGN_CENTER);
+    if (gui_button("Save and quit", WINDOW_WIDTH / 2, next.y)) {
+      Leaderboard_update(lb, &p->record);
+      Leaderboard_save(lb, LEADERBOARD_FILE);
+      game->state = GAME_TITLE_SCREEN;
+    }
+  }
+  if (gui_button("Quit", WINDOW_WIDTH / 2, WINDOW_HEIGHT - GUI_FONT_SIZE * 2)) {
+    game->state = GAME_TITLE_SCREEN;
+  }
+}
+static void Game_won_update(Game *game) {}
 
 /// Draws the game depending on its game state.
 void Game_draw(Game *game) {
@@ -191,6 +223,9 @@ void Game_draw(Game *game) {
   case GAME_LEADERBOARD:
     Game_leaderboard_draw(game);
     break;
+  case GAME_WON:
+    Game_won_draw(game);
+    break;
   default:
     error_out("not implemented");
   }
@@ -210,6 +245,8 @@ int Game_update(Game *game) {
     break;
   case GAME_CLOSE:
     return 0;
+  case GAME_WON:
+
   default:
     break;
   }

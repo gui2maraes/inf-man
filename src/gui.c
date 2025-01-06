@@ -2,7 +2,9 @@
 #include "config.h"
 #include "player.h"
 #include "raylib.h"
+#include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 
 Vector2 gui_text(char *text, int x, int y, float font_scale, TextAlign align) {
   int text_size = MeasureText(text, GUI_FONT_SIZE * font_scale);
@@ -47,9 +49,33 @@ int gui_button(char *label, int x, int y) {
   return out;
 }
 
-void gui_stats(Player *player, int x, int y) {
+Vector2 gui_stats(Player *player, int x, int y) {
   Vector2 next = gui_text("Lives: ", x, y, 1, ALIGN_LEFT);
   gui_number(player->health, next.x, y, 1, ALIGN_LEFT);
   Vector2 next2 = gui_text("Score: ", x, next.y, 1, ALIGN_LEFT);
-  gui_number(player->record.score, next2.x, next.y, 1, ALIGN_LEFT);
+  next2 = gui_number(player->record.score, next2.x, next.y, 1, ALIGN_LEFT);
+  return next2;
+}
+
+Vector2 gui_textbox(char *buffer, int x, int y, TextAlign align) {
+  char s[PLAYER_NAME_BUF] = {0};
+  memset(s, '_', PLAYER_NAME_MAX);
+  for (int i = 0; i < PLAYER_NAME_BUF && buffer[i] != 0; ++i) {
+    s[i] = buffer[i];
+  }
+
+  s[PLAYER_NAME_MAX] = '\0';
+  Rectangle area = {x, y, MeasureText(s, GUI_FONT_SIZE), GUI_FONT_SIZE};
+  Vector2 next = gui_text(s, x, y, 1.0, align);
+
+  int c = GetCharPressed();
+  int len = strlen(buffer);
+  if (IsKeyPressed(KEY_BACKSPACE) && len > 0) {
+    buffer[--len] = 0;
+
+  } else if ((isalnum(c) || c == '_' || c == '-') && len < PLAYER_NAME_MAX) {
+    buffer[len++] = c;
+    buffer[len] = 0;
+  }
+  return next;
 }

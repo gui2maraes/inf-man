@@ -122,8 +122,12 @@ void Player_update(Game *game, float delta) {
   if (p->shooting_time > 0) {
     p->shooting_time -= delta;
   }
-  if (IsKeyPressed(KEY_Z)) {
+  if (p->bullet_delay > 0) {
+    p->bullet_delay -= delta;
+  }
+  if (IsKeyPressed(KEY_Z) && p->bullet_delay <= 0.0) {
     Bullet_spawn(game);
+    p->bullet_delay = BULLET_FIRE_DELAY;
     p->shooting_time = PLAYER_SHOOTING_TIME;
   }
   if (p->shooting_time > 0) {

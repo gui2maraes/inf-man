@@ -18,4 +18,6 @@ Vector2 gui_number(int number, int x, int y, float font_scale, TextAlign align);
 int gui_button(char *label, int x, int y);
 
 /// Draws the player stats.
-void gui_stats(Player *player, int x, int y);
+Vector2 gui_stats(Player *player, int x, int y);
+
+Vector2 gui_textbox(char *buffer, int x, int y, TextAlign align);

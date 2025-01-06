@@ -5,6 +5,7 @@
 #include <string.h>
 
 static void Leaderboard_dummy(Leaderboard *leaderboard) {
+  *leaderboard = (Leaderboard){0};
   PlayerRecord *players = leaderboard->players;
   /// If the number of players is changed in the configuration,
   /// abort immediately as to not overflow the buffer.
@@ -24,23 +25,23 @@ static void Leaderboard_dummy(Leaderboard *leaderboard) {
   players[4].score = 10;
 }
 
-int Leaderboard_save(Leaderboard *leaderboard, char *path) {
+bool Leaderboard_save(Leaderboard *leaderboard, char *path) {
   FILE *f = fopen(path, "wb");
-  int out = 1;
+  int out = true;
   if (!f) {
     perror("error saving leaderboard");
-    return 0;
+    return false;
   }
   if (fwrite(leaderboard, sizeof(Leaderboard), 1, f) != 1) {
-    out = 0;
+    out = false;
   }
   fclose(f);
   return out;
 }
 
-int Leaderboard_init(Leaderboard *leaderboard, char *path) {
+bool Leaderboard_init(Leaderboard *leaderboard, char *path) {
   FILE *f = fopen(path, "rb");
-  int out = 1;
+  int out = true;
   if (!f) {
     // if the file doesn't exist, we create a dummy leaderboard
     // and save it to the file.
@@ -49,11 +50,11 @@ int Leaderboard_init(Leaderboard *leaderboard, char *path) {
       return Leaderboard_save(leaderboard, path);
     }
     perror("error opening leaderboard file");
-    return 0;
+    return false;
   }
 
   if (fread(leaderboard, sizeof(Leaderboard), 1, f) != 1) {
-    out = 0;
+    out = false;
   }
   fclose(f);
   return out;
@@ -65,12 +66,21 @@ void Leaderboard_update(Leaderboard *leaderboard, PlayerRecord *record) {
     // once found the new record's spot,
     if (record->score > leaderboard->players[i].score) {
       // we push down the remaining scores
-      for (int j = i; j < LEADERBOARD_NUM - 1; ++j) {
-        leaderboard->players[j + 1] = leaderboard->players[j];
+
+      for (int j = LEADERBOARD_NUM - 1; j > i; --j) {
+        leaderboard->players[j] = leaderboard->players[j - 1];
       }
       // and place the new record there.
       leaderboard->players[i] = *record;
       return;
     }
   }
+}
+bool Leaderboard_is_contender(Leaderboard *leaderboard, int score) {
+  for (int i = 0; i < LEADERBOARD_NUM; ++i) {
+    if (score > leaderboard->players[i].score) {
+      return true;
+    }
+  }
+  return false;
 }

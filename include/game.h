@@ -2,6 +2,7 @@
 #include "bullet.h"
 #include "config.h"
 #include "enemy.h"
+#include "gui.h"
 #include "leaderboard.h"
 #include "level.h"
 #include "player.h"
@@ -14,6 +15,7 @@ typedef enum GameState {
   GAME_PAUSED,
   GAME_RUNNING,
   GAME_DIED,
+  GAME_WON,
   GAME_CLOSE,
 } GameState;
 

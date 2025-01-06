@@ -10,15 +10,17 @@ typedef struct Game Game;
 typedef struct Bullet {
   Vector2 pos;
   float velocity;
-  bool alive;
+  float alive_time;
 } Bullet;
 
+/// Returns true if the bullet is alive
+bool Bullet_alive(Bullet *bullet);
 /// Returns the Rectangle containing the bullet.
 Hitbox Bullet_hitbox(Bullet *bullet);
 
 /// Updates the bullet position and kill it when it leaves the screen.
 void Bullet_update(Bullet *bullet, Player *p, EnemyManager *enemy_mgr,
-                   float cutoff_distance, float delta);
+                   float delta);
 void Bullets_update(Game *game, float delta);
 
 /// Draws a bullet if it's alive

@@ -1,8 +1,8 @@
 alias b := build
 alias r := run
 # build project
-build:
-    ninja -C build
+build :
+    make -C debug
 
 run: build
-    ./build/infman
+    ./debug/infman

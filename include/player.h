@@ -19,6 +19,7 @@ typedef struct Player {
   bool already_jumped;
   float invincible_time;
   float shooting_time;
+  float bullet_delay;
   Animator animator;
   Animator shooting;
 

@@ -1,5 +1,8 @@
 .cache/
 build/
+debug/
+release/
 assets-proj/
 level.bmp
 level.world
+top_scores.bin

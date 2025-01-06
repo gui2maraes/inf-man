@@ -4,41 +4,35 @@
 #include "enemy.h"
 #include "game.h"
 #include "player.h"
-#include <math.h>
 
 Hitbox Bullet_hitbox(Bullet *bullet) {
   return (Hitbox){bullet->pos, BULLET_HEIGHT};
 }
+bool Bullet_alive(Bullet *bullet) { return bullet->alive_time > 0.0; }
 
 void Bullet_update(Bullet *bullet, Player *p, EnemyManager *enemy_mgr,
-                   float cutoff_distance, float delta) {
-  if (fabs(bullet->pos.x - p->pos.x) > cutoff_distance) {
-    bullet->alive = false;
-  }
-  if (!bullet->alive) {
+                   float delta) {
+  if (Bullet_alive(bullet)) {
+    bullet->alive_time -= delta;
+  } else {
     return;
   }
   bullet->pos.x += bullet->velocity * delta;
   Enemy *enemy = EnemyManager_colliding_with(enemy_mgr, Bullet_hitbox(bullet));
   if (enemy) {
     enemy->alive = false;
-    bullet->alive = false;
+    bullet->alive_time = 0;
     p->record.score += ENEMY_PTS;
   }
 }
 void Bullets_update(Game *game, float delta) {
-  float cutoff = WINDOW_WIDTH / game->camera.zoom / 2.0;
   for (int i = 0; i < MAX_BULLETS; ++i) {
-    Bullet_update(&game->bullets[i], &game->player, &game->enemy_mgr, cutoff,
-                  delta);
+    Bullet_update(&game->bullets[i], &game->player, &game->enemy_mgr, delta);
   }
 }
 
 void Bullet_draw(Bullet *bullet) {
-  // Rectangle rect = Bullet_hitbox(bullet);
-  // rect.x -= rect.width / 2;
-  // rect.y -= rect.height / 2;
-  if (bullet->alive) {
+  if (Bullet_alive(bullet)) {
     // DrawRectangleRec(rect, YELLOW);
     Hitbox hb = Bullet_hitbox(bullet);
     DrawCircleV(hb.pos, hb.radius, YELLOW);
@@ -55,14 +49,14 @@ void Bullets_draw(Game *game) {
 void Bullet_spawn(Game *game) {
   Bullet *b = 0;
   for (int i = 0; i < MAX_BULLETS; ++i) {
-    if (!game->bullets[i].alive) {
+    if (!Bullet_alive(&game->bullets[i])) {
       b = &game->bullets[i];
       break;
     }
   }
   if (b) {
     Player *p = &game->player;
-    b->alive = true;
+    b->alive_time = BULLET_ALIVE_TIME;
     b->pos = p->pos;
     b->pos.x += PLAYER_SIZE * p->direction / 2.0;
     b->velocity = BULLET_SPEED * p->direction;
