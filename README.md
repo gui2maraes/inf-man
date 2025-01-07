@@ -32,3 +32,21 @@ Features:
   colocar seu nome no leaderboard.
 - Cada inimigo morto vale 100 pontos, e cada vida restante
   vale 200 pontos.
+
+## Compilação:
+
+### Requisitos:
+
+- CMake,
+- Ninja ou Make no linux,
+- Compilador compatível,
+
+### Instruções:
+
+```
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ ./infman
+```
