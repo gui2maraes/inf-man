@@ -48,8 +48,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install X11
-        if: runner.os == 'ubuntu-latest'
-        run: sudo apt-get install xorg-dev
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get install xorg-dev
+          fi
 
       - name: Set reusable strings
         # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
