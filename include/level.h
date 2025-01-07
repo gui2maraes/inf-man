@@ -23,19 +23,19 @@ typedef struct Level {
 
 /// Initializes level with worldfile and generates world texture.
 /// Also populate the enemies array.
-/// returns 0 on failure and non-zero on success.
-int Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile);
+/// returns true on success and false on failure.
+bool Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile);
 /// Transforms a line and column index into the level tile matrix
 /// into 2D world coordinates.
 Vector2 Level_matrix_to_world(int line, int column);
 /// Transforms a world coordinate into the level tile matrix
 /// coordinates. Returns true if inbounds or false if out of bounds.
-int Level_world_to_matrix(Vector2 v, int *x, int *y);
+bool Level_world_to_matrix(Vector2 v, int *x, int *y);
 void Level_gen_texture(Level *level);
 void Level_draw(Level *level);
 
 /// Checks if a world coordinate is a certain tile
-int Level_coord_is_tile(Level *l, Vector2 v, Tile tile);
+bool Level_coord_is_tile(Level *l, Vector2 v, Tile tile);
 
 Vector2 Level_align_coord_tile_center(Vector2 coords);
 

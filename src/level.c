@@ -2,8 +2,9 @@
 #include "config.h"
 #include "raylib.h"
 #include "worldfile.h"
-#include <stdio.h>
 #include <stdlib.h>
+
+/// find the place furthest to the right containing a block
 static float suitable_win_x(Level *level) {
   for (int col = LEVEL_WIDTH - 1; col >= 0; --col) {
     for (int line = 0; line < LEVEL_HEIGHT; ++line) {
@@ -15,14 +16,14 @@ static float suitable_win_x(Level *level) {
   return 0;
 }
 
-int Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile) {
+bool Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile) {
   *level = (Level){0};
   if (!read_worldfile(worldfile, level, enemy_mgr)) {
-    return 0;
+    return false;
   }
   Level_gen_texture(level);
   level->win_x = suitable_win_x(level);
-  return 1;
+  return true;
 }
 Vector2 Level_matrix_to_world(int line, int column) {
   float scale = TILE_SIZE;
@@ -31,17 +32,16 @@ Vector2 Level_matrix_to_world(int line, int column) {
   return v;
 }
 
-int Level_world_to_matrix(Vector2 v, int *line, int *column) {
-  int x = v.x / TILE_SIZE; // Converte posição em coordenada de tile
+bool Level_world_to_matrix(Vector2 v, int *line, int *column) {
+  int x = v.x / TILE_SIZE;
   int y = v.y / TILE_SIZE;
 
-  // Verifica se está fora dos limites do nível
   if (x < 0 || x >= LEVEL_WIDTH || y < 0 || y >= LEVEL_HEIGHT) {
-    return 0; // Fora dos limites, não é sólido
+    return false;
   }
   *line = y;
   *column = x;
-  return 1;
+  return true;
 }
 Vector2 Level_align_coord_tile_center(Vector2 coords) {
   int column = coords.x / TILE_SIZE; // Converte posição em coordenada de tile
@@ -49,10 +49,10 @@ Vector2 Level_align_coord_tile_center(Vector2 coords) {
   return Level_matrix_to_world(line, column);
 }
 
-int Level_coord_is_tile(Level *l, Vector2 v, Tile tile) {
+bool Level_coord_is_tile(Level *l, Vector2 v, Tile tile) {
   int line, column;
   if (!Level_world_to_matrix(v, &line, &column)) {
-    return 0;
+    return false;
   }
   return l->tiles[column][line] == tile;
 }
@@ -72,7 +72,6 @@ static Image build_background(Image bg_tile, Rectangle *bg_rect) {
   Image full_bg = GenImageColor(LEVEL_WIDTH * TILE_SIZE + WINDOW_WIDTH,
                                 full_bg_height, WHITE);
   int amount = full_bg.width / bg_tile.width + 1;
-  printf("amount: %d", amount);
   Rectangle src_rec = {0.0, 0.0, bg_tile.width, bg_tile.height};
   for (int i = 0; i < amount; ++i) {
     Rectangle dst_rec = {i * bg_tile.width, 0, bg_tile.width, bg_tile.height};

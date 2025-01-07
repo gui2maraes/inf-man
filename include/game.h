@@ -31,11 +31,12 @@ typedef struct Game {
 } Game;
 
 /// Initializes a Game struct.
-/// Returns 1 on success and 0 on failure.
-int Game_init(Game *game);
+/// Returns true on success and false on failure.
+bool Game_init(Game *game);
 
-int Game_update(Game *game);
+/// Updates the game
+bool Game_update(Game *game);
+/// Draws the game
 void Game_draw(Game *game);
 
-void Game_collide(Game *game);
 void Game_change_state(Game *game, GameState new_state);

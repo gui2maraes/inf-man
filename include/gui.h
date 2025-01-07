@@ -20,4 +20,5 @@ int gui_button(char *label, int x, int y);
 /// Draws the player stats.
 Vector2 gui_stats(Player *player, int x, int y);
 
+/// Draws a textbox and store user input in buffer
 Vector2 gui_textbox(char *buffer, int x, int y, TextAlign align);

@@ -39,18 +39,18 @@ void Game_change_state(Game *game, GameState new_state) {
 /// Loads the worldfile, generates the level texture
 /// and initializes player and enemies.
 /// Returns 1 on success and 0 on failure
-int Game_init(Game *game) {
+bool Game_init(Game *game) {
   *game = (Game){0};
   TextureManager_load(&game->tex);
   EnemyManager_init(&game->enemy_mgr, &game->tex);
   if (!Level_init(&game->level, &game->enemy_mgr, WORLDFILE_PATH)) {
-    return 0;
+    return false;
   }
   if (!Leaderboard_init(&game->leaderboard, LEADERBOARD_FILE)) {
-    return 0;
+    return false;
   }
   Game_change_state(game, GAME_TITLE_SCREEN);
-  return 1;
+  return true;
 }
 
 /// Draws the Game title screen
@@ -243,7 +243,7 @@ void Game_draw(Game *game) {
 /// Updates the Game structure.
 /// Returns 1 if the game should keep running
 /// and 0 if the game should close.
-int Game_update(Game *game) {
+bool Game_update(Game *game) {
   switch (game->state) {
   case GAME_RUNNING:
     Game_running_update(game);
@@ -252,11 +252,10 @@ int Game_update(Game *game) {
     Game_paused_update(game);
     break;
   case GAME_CLOSE:
-    return 0;
+    return false;
   case GAME_WON:
-
   default:
     break;
   }
-  return 1;
+  return true;
 }
