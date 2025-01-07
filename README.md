@@ -22,7 +22,8 @@ Features:
 
 ## Instruções:
 
-- Colocar um arquivo chamado `level.world` na mesma pasta do executável,
+- Deixar a pasta `assets` na mesma pasta do executável.
+- Colocar um arquivo chamado `level.world` na mesma pasta do executável.
   contendo a descrição textual do nível.
 - Selecionar opções do menu com o mouse.
 - Movimentação nas setas direcionais (←, →).
