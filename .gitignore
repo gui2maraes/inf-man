@@ -2,6 +2,7 @@
 build/
 debug/
 release/
+cross/
 assets-proj/
 level.bmp
 level.world
