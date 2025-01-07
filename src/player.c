@@ -64,12 +64,16 @@ static Vector2 Player_edge(Player *p, int x_sign) {
   return translated;
 }
 
-void Player_damage(Player *p, Direction damage_direction) {
+void Player_damage(Player *p, bool knockback, Direction damage_direction) {
   if (p->invincible_time <= 0) {
     p->health -= 1;
-    p->velocity.x = -damage_direction * PLAYER_DAMAGE_RECOIL * PLAYER_SIZE;
-    p->velocity.y = PLAYER_DAMAGE_RECOIL * PLAYER_SIZE;
     p->invincible_time = PLAYER_INVINCIBILITY;
+    p->velocity.x = 0;
+    p->velocity.y = 0;
+    if (knockback) {
+      p->velocity.x = -damage_direction * PLAYER_DAMAGE_RECOIL * PLAYER_SIZE;
+      p->velocity.y = PLAYER_DAMAGE_RECOIL * PLAYER_SIZE;
+    }
   }
 }
 static Direction collision_direction(Player *p, CollisionMap colls) {
@@ -173,6 +177,7 @@ void Player_update(Game *game, float delta) {
   if (collisions & COLLISION_DOWN) {
     p->pos.y = aligned.y + TILE_SIZE / 2.0 - PLAYER_SIZE / 2.0;
     p->velocity.y = 0;
+    p->jumped_from = p->pos;
     // and is jumping,
     if (IsKeyDown(JUMP_KEY) && !p->already_jumped) {
       p->velocity.y = PLAYER_SIZE * PLAYER_JUMP_FORCE;
@@ -187,16 +192,22 @@ void Player_update(Game *game, float delta) {
     }
   }
   // check collision with enemies
-  if (p->invincible_time <= 0 &&
-      EnemyManager_colliding_with(enemy_mgr, Player_enemy_hitbox(p))) {
-    Player_damage(p, DIR_RIGHT);
+  if (p->invincible_time <= 0) {
+    Enemy *enemy =
+        EnemyManager_colliding_with(enemy_mgr, Player_enemy_hitbox(p));
+    if (enemy) {
+      Direction dir = (enemy->pos.x < p->pos.x) ? DIR_LEFT : DIR_RIGHT;
+      Player_damage(p, true, dir);
+    }
   }
 
   // if colliding with any obstacle, kill the player.
   CollisionMap obstacle_collisions =
       resolve_collisions(level, Player_hitbox(p, TILE_OBSTACLE), TILE_OBSTACLE);
   if (obstacle_collisions && p->invincible_time <= 0) {
-    p->health = 0;
+    // p->health = 0;
+    Player_damage(p, false, DIR_LEFT);
+    p->pos = p->jumped_from;
     // Player_damage(p, collision_direction(p, obstacle_collisions));
   }
 

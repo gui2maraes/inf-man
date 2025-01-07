@@ -13,6 +13,7 @@ typedef struct Game Game;
 typedef struct Player {
   Vector2 pos;
   Vector2 velocity;
+  Vector2 jumped_from;
   int health;
   PlayerRecord record;
   Direction direction;
@@ -39,7 +40,7 @@ void Player_draw(Player *p);
 /// Returns true if the player's health is 0, and false otherwise.
 bool Player_is_dead(Player *p);
 
-void Player_damage(Player *p, Direction damage_direction);
+void Player_damage(Player *p, bool knockback, Direction damage_direction);
 // void Player_update(Player *p, Level *level, float delta);
 void Player_update(Game *game, float delta);
 Rectangle Player_hitbox(Player *p, Tile tile);

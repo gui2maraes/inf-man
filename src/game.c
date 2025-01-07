@@ -27,6 +27,8 @@ void Game_change_state(Game *game, GameState new_state) {
       Game_running_init(game);
     }
     break;
+  case GAME_WON:
+    game->player.record.score += PLAYER_LIFE_PTS * game->player.health;
   default:
     break;
   }
@@ -108,10 +110,14 @@ static void Game_running_update(Game *game) {
   EnemyManager_update(game, delta);
   Bullets_update(game, delta);
 
+  TraceLog(LOG_DEBUG, "player pos: %f", game->player.pos.x);
   game->camera.target.x = game->player.pos.x;
   if (Player_is_dead(&game->player)) {
     game->state = GAME_DIED;
     return;
+  }
+  if (game->player.pos.x > game->level.win_x) {
+    Game_change_state(game, GAME_WON);
   }
   if (IsKeyPressed(KEY_ESCAPE)) {
     game->state = GAME_PAUSED;

@@ -4,6 +4,16 @@
 #include "worldfile.h"
 #include <stdio.h>
 #include <stdlib.h>
+static float suitable_win_x(Level *level) {
+  for (int col = LEVEL_WIDTH - 1; col >= 0; --col) {
+    for (int line = 0; line < LEVEL_HEIGHT; ++line) {
+      if (level->tiles[col][line] == TILE_BLOCK) {
+        return Level_matrix_to_world(line, col).x - TILE_SIZE * 2;
+      }
+    }
+  }
+  return 0;
+}
 
 int Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile) {
   *level = (Level){0};
@@ -11,6 +21,7 @@ int Level_init(Level *level, EnemyManager *enemy_mgr, char *worldfile) {
     return 0;
   }
   Level_gen_texture(level);
+  level->win_x = suitable_win_x(level);
   return 1;
 }
 Vector2 Level_matrix_to_world(int line, int column) {
